@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "162635320897",
+    "project_id": "muqitapp-c47ef",
+    "storage_bucket": "muqitapp-c47ef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:162635320897:android:d92a73ff1fac4d70f340c0",
+        "android_client_info": {
+          "package_name": "com.example.Muqit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "162635320897-mbeovovpmje4v0egq8kdo1r6cs0tinkm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4Z2rwGbE3kVVY8uQY6OY8PhMLLVbBxoo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "162635320897-mbeovovpmje4v0egq8kdo1r6cs0tinkm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
