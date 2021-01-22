@@ -110,9 +110,9 @@ class _HomeMapClassState extends State<HomeMapClass> {
     super.dispose();
   }
 
-  String picurl;
   void AddMarkers(
       LatLng latLng, BuildContext context, String id, String eta) async {
+    String picurl;
     MarkerId markerId = MarkerId(
         latLng.latitude.toString() + "," + latLng.longitude.toString());
     List<SingleTasker> singletaskerList = await getTaskerDetails(id);
@@ -122,6 +122,8 @@ class _HomeMapClassState extends State<HomeMapClass> {
       if (response.statusCode == 200) {
         picurl = "https://www.muqit.com/app/upload/" +
             singletaskerList.elementAt(0).profile;
+      } else {
+        picurl = '';
       }
     } else {
       picurl = '';
@@ -145,7 +147,7 @@ class _HomeMapClassState extends State<HomeMapClass> {
                     child: Row(
                       children: [
                         CircleAvatar(
-                          child: singletaskerList.elementAt(0).profile != ''
+                          child: picurl != ''
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(34.0),
                                   child: Image.network(
