@@ -15,30 +15,34 @@ class ClientLoginModel {
     this.message,
     this.status,
     this.id,
-    this.username,
     this.email,
+    this.username,
+    this.profile,
   });
 
   String message;
   bool status;
   String id;
-  String username;
   String email;
+  String username;
+  String profile;
 
   factory ClientLoginModel.fromJson(Map<String, dynamic> json) =>
       ClientLoginModel(
         message: json["message"],
         status: json["status"],
         id: json["id"],
-        username: json["username"],
         email: json["email"],
+        username: json["username"],
+        profile: json["profile"],
       );
 
   Map<String, dynamic> toJson() => {
         "message": message,
         "status": status,
         "id": id,
-        "username": username,
         "email": email,
+        "username": username,
+        "profile": profile,
       };
 }

@@ -37,12 +37,13 @@ class _ResetPassword extends State<ResetPasswordScreen> {
   bool codesent = false;
   StreamController<ErrorAnimationType> errorController;
   TextEditingController pintextEditingController = new TextEditingController();
+  String emailValue;
 
   Future<GeneralResposne> sendCode(String email, String code) async {
-    String url = "";
+    String url = "https://muqit.com/app/csendcode.php";
     http.Response response =
         await http.post(url, body: {'email': email, 'code': code});
-    generalResposneFromJson(response.body);
+    return generalResposneFromJson(response.body);
   }
 
   @override
@@ -72,15 +73,15 @@ class _ResetPassword extends State<ResetPasswordScreen> {
               errorAnimationController: errorController,
               controller: pintextEditingController,
               onCompleted: (v) {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Passwordrestore()));
-                setState(() {
-                  isCodesent = true;
-                });
+                if (v == rndcode) {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Passwordrestore(emailValue)));
+                }
               },
               onChanged: (value) {
                 print(value);
-                setState(() {});
               },
               beforeTextPaste: (text) {
                 print("Allowing to paste $text");
@@ -100,7 +101,11 @@ class _ResetPassword extends State<ResetPasswordScreen> {
       children: [
         Text("Didn't receive the Code? "),
         InkWell(
-            onTap: () {},
+            onTap: () async {
+              rndcode = randomNumeric(6);
+              GeneralResposne generalResposne =
+                  await sendCode(emailValue, rndcode);
+            },
             child: Text("Resend",
                 style: TextStyle(
                     color: Colors.green, fontWeight: FontWeight.bold)))
@@ -108,6 +113,7 @@ class _ResetPassword extends State<ResetPasswordScreen> {
     );
   }
 
+  String rndcode;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -216,10 +222,26 @@ class _ResetPassword extends State<ResetPasswordScreen> {
                                 if (RegExp(
                                         r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                                     .hasMatch(emailController.text)) {
-                                  print(randomNumeric(6));
-                                  setState(() {
-                                    isCodesent = true;
-                                  });
+                                  await progressDialog.show();
+                                  rndcode = randomNumeric(6);
+                                  GeneralResposne generalResposne =
+                                      await sendCode(
+                                          emailController.text, rndcode);
+                                  if (generalResposne.message !=
+                                      'Email not found') {
+                                    emailValue = emailController.text;
+                                    setState(() {
+                                      isCodesent = true;
+                                    });
+                                    Toast.show(generalResposne.message, context,
+                                        gravity: Toast.CENTER,
+                                        duration: Toast.LENGTH_LONG);
+                                  } else {
+                                    Toast.show(generalResposne.message, context,
+                                        gravity: Toast.CENTER,
+                                        duration: Toast.LENGTH_LONG);
+                                  }
+                                  await progressDialog.hide();
                                 } else {
                                   Toast.show(
                                       "Enter Valid Email Address.....", context,

@@ -2,8 +2,11 @@ import 'package:Muqit/Models/GeneralResponse.dart';
 import 'package:flutter/material.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:toast/toast.dart';
+import 'package:http/http.dart' as http;
 
 class Passwordrestore extends StatefulWidget {
+  String email;
+  Passwordrestore(this.email, {Key key}) : super(key: key);
   @override
   _PasswordrestoreState createState() => _PasswordrestoreState();
 }
@@ -12,6 +15,13 @@ class _PasswordrestoreState extends State<Passwordrestore> {
   final repasswordController = new TextEditingController();
   final passwordController = new TextEditingController();
   ProgressDialog progressDialog;
+
+  Future<GeneralResposne> resetPassword(String email, String password) async {
+    String url = "https://muqit.com/app/cpasswordreset.php";
+    http.Response response =
+        await http.post(url, body: {'email': email, 'password': password});
+    return generalResposneFromJson(response.body);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,11 +149,20 @@ class _PasswordrestoreState extends State<Passwordrestore> {
                               color: Colors.black,
                               fontSize: 15.0,
                               fontWeight: FontWeight.w600));
-                      await progressDialog.show();
+
                       if (repasswordController.text.isNotEmpty ||
                           passwordController.text.isNotEmpty) {
                         if (repasswordController.text ==
                             passwordController.text) {
+                          await progressDialog.show();
+                          GeneralResposne generalResposne = await resetPassword(
+                              widget.email, passwordController.text);
+
+                          Toast.show(generalResposne.message, context,
+                              duration: Toast.LENGTH_SHORT,
+                              gravity: Toast.BOTTOM);
+                          progressDialog.hide();
+                          Navigator.pop(context);
                         } else {
                           Toast.show("Password does not match", context,
                               duration: Toast.LENGTH_SHORT,

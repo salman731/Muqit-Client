@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:Muqit/Models/SingleTakserModel.dart';
 import 'package:Muqit/Models/TaskerLocation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ import 'dart:async';
 import 'package:location/location.dart';
 import 'dart:typed_data';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 class HomeMapClass extends StatefulWidget {
   final String tid;
@@ -108,10 +110,22 @@ class _HomeMapClassState extends State<HomeMapClass> {
     super.dispose();
   }
 
-  void AddMarkers(LatLng latLng, BuildContext context, String name,
-      String address, String eta) {
+  String picurl;
+  void AddMarkers(
+      LatLng latLng, BuildContext context, String id, String eta) async {
     MarkerId markerId = MarkerId(
         latLng.latitude.toString() + "," + latLng.longitude.toString());
+    List<SingleTasker> singletaskerList = await getTaskerDetails(id);
+    if (singletaskerList.elementAt(0).profile != '') {
+      final response = await http.get("https://www.muqit.com/app/upload/" +
+          singletaskerList.elementAt(0).profile);
+      if (response.statusCode == 200) {
+        picurl = "https://www.muqit.com/app/upload/" +
+            singletaskerList.elementAt(0).profile;
+      }
+    } else {
+      picurl = '';
+    }
     Marker marker = new Marker(
       onTap: () {
         showModalBottomSheet(
@@ -131,8 +145,21 @@ class _HomeMapClassState extends State<HomeMapClass> {
                     child: Row(
                       children: [
                         CircleAvatar(
-                          child: Icon(Icons.account_box_outlined,
-                              color: Colors.white, size: 30),
+                          child: singletaskerList.elementAt(0).profile != ''
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(34.0),
+                                  child: Image.network(
+                                    picurl,
+                                    fit: BoxFit.fill,
+                                    width: 65,
+                                    height: 65,
+                                    errorBuilder: (BuildContext context,
+                                        Object exception,
+                                        StackTrace stackTrace) {},
+                                  ),
+                                )
+                              : Icon(Icons.account_box_outlined,
+                                  color: Colors.white, size: 30),
                           radius: 34,
                           backgroundColor: Colors.green,
                         ),
@@ -156,7 +183,7 @@ class _HomeMapClassState extends State<HomeMapClass> {
                                   width: 3,
                                 ),
                                 Text(
-                                  name,
+                                  singletaskerList.elementAt(0).name,
                                   style: TextStyle(
                                     fontSize: 14,
                                   ),
@@ -177,7 +204,7 @@ class _HomeMapClassState extends State<HomeMapClass> {
                                   width: 3,
                                 ),
                                 Text(
-                                  address,
+                                  singletaskerList.elementAt(0).address,
                                   style: TextStyle(
                                     fontSize: 14,
                                   ),
@@ -265,14 +292,22 @@ class _HomeMapClassState extends State<HomeMapClass> {
         zoom: 18.00)));
   }
 
+  Future<List<SingleTasker>> getTaskerDetails(String id) async {
+    String uri = "https://www.muqit.com/app/fetch_singletasker.php";
+    http.Response response = await http.post(uri, body: {'id': id});
+    return singleTaskerFromJson(response.body);
+  }
+
   List<TaskerLocation> taskerLocationList = List<TaskerLocation>();
   getAllTaskersLocation(LatLng currentlatLng, BuildContext context) async {
     isMe = false;
+
     await FirebaseFirestore.instance
         .collection('Taskers')
         .get()
         .then((querysnapshot) {
       querysnapshot.docs.forEach((element) {
+        print(element.id);
         double distance = Geolocator.distanceBetween(
             currentlatLng.latitude,
             currentlatLng.longitude,
@@ -285,8 +320,7 @@ class _HomeMapClassState extends State<HomeMapClass> {
           LatLng tlatLng = new LatLng(element.data()['location']['latitude'],
               element.data()['location']['longitude']);
 
-          AddMarkers(
-              tlatLng, context, "dummy", "dummy", timeinMin.ceil().toString());
+          AddMarkers(tlatLng, context, element.id, timeinMin.ceil().toString());
         }
       });
     });

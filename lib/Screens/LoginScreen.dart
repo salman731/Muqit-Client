@@ -71,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   setLoginSharedPref(String name, String email, String id, String password,
-      bool login, String typeUser) async {
+      bool login, String typeUser, String pic) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('name', name);
     prefs.setString('email', email);
@@ -79,6 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
     prefs.setString('password', password);
     prefs.setBool('islogin', login);
     prefs.setString('userType', typeUser);
+    prefs.setString('pic', pic);
   }
 
   checkLoginStatus() async {
@@ -284,7 +285,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   clientResposne.id.trim(),
                                   passwordController.text.trim(),
                                   true,
-                                  'Client');
+                                  'Client',
+                                  clientResposne.profile);
                               Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(

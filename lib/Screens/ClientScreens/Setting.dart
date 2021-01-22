@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:Muqit/Models/ClientLoginResponse.dart';
 import 'package:Muqit/Models/GeneralResponse.dart';
+import 'package:Muqit/Models/TaskerLoginResponse.dart';
 import 'package:Muqit/Screens/ClientScreens/EditProfile.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +10,7 @@ import 'package:path/path.dart';
 import 'package:async/async.dart';
 import 'package:http/http.dart' as http;
 import 'package:progress_dialog/progress_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toast/toast.dart';
 
 class Setting extends StatefulWidget {
@@ -32,11 +35,48 @@ class _SettingState extends State<Setting> {
     });
   }
 
+  Future<ClientLoginModel> ClientLogin(
+    String email,
+    String password,
+  ) async {
+    String uri = 'https://muqit.com/app/client_login.php';
+    http.Response response =
+        await http.post(uri, body: {"email": email, "password": password});
+    final String responseString = response.body;
+    print(responseString);
+    return clientLoginModelFromJson(responseString);
+  }
+
+  loadImage() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    ClientLoginModel clientLoginModel = await ClientLogin(
+        preferences.getString('email'), preferences.getString('password'));
+
+    if (clientLoginModel.profile == '') {
+      setState(() {
+        isimageFound = false;
+      });
+    } else {
+      imageName = clientLoginModel.profile;
+      setState(() {
+        isimageFound = true;
+      });
+    }
+  }
+
   Future<GeneralResposne> uploadImage(String photo, String id) async {
     final String uri = 'https://muqit.com/app/file_upload.php';
     http.Response response =
         await http.post(uri, body: {'photo': photo, 'id': id});
     return generalResposneFromJson(response.body);
+  }
+
+  bool isimageFound = false;
+  String imageName;
+
+  @override
+  void initState() {
+    loadImage();
   }
 
   @override
@@ -68,13 +108,23 @@ class _SettingState extends State<Setting> {
                     Column(
                       children: [
                         CircleAvatar(
-                          radius: 30,
+                          radius: 34,
                           backgroundColor: Colors.grey[300],
-                          child: Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Colors.black,
-                          ),
+                          child: isimageFound
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(34.0),
+                                  child: Image.network(
+                                      "https://www.muqit.com/app/upload/" +
+                                          imageName,
+                                      fit: BoxFit.fill,
+                                      width: 65,
+                                      height: 65),
+                                )
+                              : Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.black,
+                                ),
                         ),
                       ],
                     ),
@@ -196,6 +246,7 @@ class _SettingState extends State<Setting> {
                                 widget.clientID);
                             if (generalResposne.status) {
                               progressDialog.hide();
+                              loadImage();
                               Toast.show(generalResposne.message, context,
                                   gravity: Toast.CENTER,
                                   duration: Toast.LENGTH_LONG);
